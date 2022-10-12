@@ -233,19 +233,17 @@ ORDER BY quantity DESC
 	This way, a separate data object is not created, lowering the storage cost, 
 	but on the other hand, it is focused on a single query. 
 	
-	The most optimal solution, in my opinion, would be to create a VIEW as it
-	provides an opportunity for reusability of the code and is more dynamic 
-	(the data gets updated as there changes are made) in contrast to the two
-	aforementioned solutions.
+	The most optimal solution, in my opinion, would be to create a MATERIALIZED VIEW 
+	as it provides an opportunity for reusability of the code and is more dynamic 
+	in contrast to the two aforementioned solutions. If the data is updated
+	REFRESH MATERIALIZED VIEW command comes in very handy.
 	
-	For more complicated queries I would use MATERIALIZED VIEW to combine
-	the speed of execution of CREATE TABLE and smart functionality of a 
-	regular VIEW.
+	If the data is updated the
 */
 
 -- ## Average Order value ## --
 
-CREATE VIEW order_values AS (
+CREATE MATERIALIZED VIEW mv_order_values AS (
 	SELECT
 		od.order_id
 		, SUM(od.quantity * p.price) AS order_value
@@ -257,9 +255,11 @@ CREATE VIEW order_values AS (
 )
 ;
 
+-- REFRESH MATERAILIZED VIEW mv_order_values
+
 SELECT
 	ROUND(AVG(order_value), 2)
-FROM order_values
+FROM mv_order_values
 ;
 
 -- average order value is 38.31
@@ -267,7 +267,7 @@ FROM order_values
 
 -- ## Busiest day of the week ## --
 
-CREATE VIEW number_of_order_by_weekdays AS (	
+CREATE MATERIALIZED VIEW mv_number_of_order_by_weekdays AS (	
 	SELECT
 		COUNT(DISTINCT od.order_id) AS number_of_orders
 		, o.order_date
@@ -278,6 +278,8 @@ CREATE VIEW number_of_order_by_weekdays AS (
 	GROUP BY o.order_date
 	)
 ;
+
+-- REFRESH MATERAILIZED VIEW mv_number_of_order_by_weekdays
 
 SELECT 
 	SUM(number_of_orders) total_orders_on_weekday
@@ -290,14 +292,14 @@ SELECT
 		WHEN no_of_weekday = 6 THEN 'Saturday'
 		ELSE 'Sunday'
 	  END day_of_the_week
-FROM number_of_order_by_weekdays
+FROM mv_number_of_order_by_weekdays
 GROUP BY day_of_the_week
 ORDER BY total_orders_on_weekday DESC
 ;
 -- Top busiest days are Friday, Thursday and Saturday
 
 -- ## Busiest time of the week ## --
-CREATE VIEW orders_qty_time AS (
+CREATE MATERIALIZED VIEW mv_orders_qty_time AS (
 	SELECT
 		o.order_id
 		, o.order_date
@@ -318,6 +320,8 @@ CREATE VIEW orders_qty_time AS (
 )
 ;
 
+-- REFRESH MATERAILIZED VIEW mv_orders_qty_time
+
 SELECT 
 	SUM(quantity) AS quantity
 	, CASE
@@ -330,7 +334,7 @@ SELECT
 		ELSE 'Sunday'
 	  END day_of_the_week
 	 , part_of_day
-FROM orders_qty_time
+FROM mv_orders_qty_time
 GROUP BY day_of_the_week, part_of_day
 ORDER BY quantity DESC
 ;
