@@ -15,7 +15,6 @@ and just received the following note:
 		b. How many pizzas are we making during peak periods?
 		c. What are our best and worst selling pizzas?
 		d. What's our average order value?
-		e. How well are we utilizing our seating capacity? (we have 15 tables and 60 seats)
 
 	That's all I can think of for now, but if you have any other ideas I'd love to hear them – you're the expert!
 	
@@ -238,6 +237,10 @@ ORDER BY quantity DESC
 	provides an opportunity for reusability of the code and is more dynamic 
 	(the data gets updated as there changes are made) in contrast to the two
 	aforementioned solutions.
+	
+	For more complicated queries I would use MATERIALIZED VIEW to combine
+	the speed of execution of CREATE TABLE and smart functionality of a 
+	regular VIEW.
 */
 
 -- ## Average Order value ## --
