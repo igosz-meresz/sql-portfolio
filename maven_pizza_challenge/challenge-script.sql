@@ -235,10 +235,10 @@ ORDER BY quantity DESC
 	
 	The most optimal solution, in my opinion, would be to create a MATERIALIZED VIEW 
 	as it provides an opportunity for reusability of the code and is more dynamic 
-	in contrast to the two aforementioned solutions. If the data is updated
-	REFRESH MATERIALIZED VIEW command comes in very handy.
+	in contrast to the two aforementioned solutions. 
 	
-	If the data is updated the
+	If the data is updated REFRESH MATERIALIZED VIEW command comes in very handy.
+	
 */
 
 -- ## Average Order value ## --
