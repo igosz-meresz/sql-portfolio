@@ -322,24 +322,6 @@ CREATE MATERIALIZED VIEW mv_orders_qty_time AS (
 
 -- REFRESH MATERAILIZED VIEW mv_orders_qty_time
 
-SELECT 
-	SUM(quantity) AS quantity
-	, CASE
-		WHEN no_of_weekday = 1 THEN 'Monday'
-		WHEN no_of_weekday = 2 THEN 'Tuesday'
-		WHEN no_of_weekday = 3 THEN 'Wednsday'
-		WHEN no_of_weekday = 4 THEN 'Thursday'
-		WHEN no_of_weekday = 5 THEN 'Friday'
-		WHEN no_of_weekday = 6 THEN 'Saturday'
-		ELSE 'Sunday'
-	  END day_of_the_week
-	 , part_of_day
-FROM mv_orders_qty_time
-GROUP BY day_of_the_week, part_of_day
-ORDER BY quantity DESC
-;
-
-
 /*
 Overall Saturday and Friday evenings are the busiest times of day + weekdays
 when Plato's makes 3051 and 3003 pizzas respectively.
