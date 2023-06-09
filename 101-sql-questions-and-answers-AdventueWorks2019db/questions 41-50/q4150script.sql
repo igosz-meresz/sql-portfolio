@@ -13,27 +13,26 @@ d. Sales Person Name (include First and Last Names). If a SalesOrderID doesn't h
 e. OrderDate
 f. Amount of Product quantity purchased
 */
-SELECT
-	soh.SalesOrderID
-	, CONCAT(cp.FirstName, ' ', cp.LastName) as CustomerName
-	, CASE WHEN cp.PersonType = 'IN' THEN 'Individual Customer'
-		   WHEN cp.PersonType = 'SC' THEN 'Store Contact'
-		   ELSE NULL END as PersonType
-	, CASE WHEN CONCAT(sp.FirstName, ' ', sp.LastName) = ' ' THEN 'No sales person'
-		   ELSE CONCAT(sp.FirstName, ' ', sp.LastName) END as SalesPerson
-	, OrderDate
-	, SUM(OrderQty) as ProductQty
-FROM Sales.SalesOrderHeader soh
-INNER JOIN Sales.SalesOrderDetail sod on soh.SalesOrderID = sod.SalesOrderID
-INNER JOIN Sales.Customer c on c.CustomerID = soh.CustomerID
-INNER JOIN Person.Person cp on cp.BusinessEntityID = c.PersonID
-LEFT JOIN Person.Person sp on sp.BusinessEntityID = soh.SalesPersonID
+SELECT 
+  soh.SalesOrderID, 
+  CONCAT(cp.FirstName, ' ', cp.LastName) as CustomerName, 
+  CASE WHEN cp.PersonType = 'IN' THEN 'Individual Customer' WHEN cp.PersonType = 'SC' THEN 'Store Contact' ELSE NULL END as PersonType, 
+  CASE WHEN CONCAT(sp.FirstName, ' ', sp.LastName) = ' ' THEN 'No sales person' ELSE CONCAT(sp.FirstName, ' ', sp.LastName) END as SalesPerson, 
+  OrderDate, 
+  SUM(OrderQty) as ProductQty 
+FROM 
+  Sales.SalesOrderHeader soh 
+  INNER JOIN Sales.SalesOrderDetail sod on soh.SalesOrderID = sod.SalesOrderID 
+  INNER JOIN Sales.Customer c on c.CustomerID = soh.CustomerID 
+  INNER JOIN Person.Person cp on cp.BusinessEntityID = c.PersonID 
+  LEFT JOIN Person.Person sp on sp.BusinessEntityID = soh.SalesPersonID 
 GROUP BY 
-	soh.SalesOrderID
-	, CONCAT(cp.FirstName, ' ', cp.LastName)
-	, CONCAT(sp.FirstName, ' ', sp.LastName)
-	, cp.PersonType
-	, OrderDate
+  soh.SalesOrderID, 
+  CONCAT(cp.FirstName, ' ', cp.LastName), 
+  CONCAT(sp.FirstName, ' ', sp.LastName), 
+  cp.PersonType, 
+  OrderDate
+
 
 /*
 Question 42:
@@ -56,47 +55,48 @@ a. You can either use Concat or '+' to make the comment/sentence.
    Use cast or convert for Sum(OrderQty) and OrderDate
 */
 -- a.
-SELECT * FROM Sales.SalesOrderHeader soh WHERE soh.Comment IS NOT NULL;
-
-
+SELECT 
+  * 
+FROM 
+  Sales.SalesOrderHeader soh 
+WHERE 
+  soh.Comment IS NOT NULL;
 -- result query
 WITH CTE as (
-	SELECT
-		soh.SalesOrderID
-		, (CONCAT(cp.FirstName, ' ', cp.LastName)
-		+' is an(n) '
-		+ CASE WHEN cp.PersonType = 'IN' THEN 'Individual Customer'
-			   WHEN cp.PersonType = 'SC' THEN 'Store Contact'
-			   ELSE NULL END
-		+' and purchased '
-		+ CAST(SUM(OrderQty) AS varchar)
-		+' product(s) from '
-		+ CASE WHEN CONCAT(sp.FirstName, ' ', sp.LastName) = ' ' THEN 'No sales person'
-			   ELSE CONCAT(sp.FirstName, ' ', sp.LastName) END
-		+' on '
-		+ CONVERT(varchar, soh.OrderDate, 101)) as Comment
-	FROM Sales.SalesOrderHeader soh
-	INNER JOIN Sales.SalesOrderDetail sod on soh.SalesOrderID = sod.SalesOrderID
-	INNER JOIN Sales.Customer c on c.CustomerID = soh.CustomerID
-	INNER JOIN Person.Person cp on cp.BusinessEntityID = c.PersonID
-	LEFT JOIN Person.Person sp on sp.BusinessEntityID = soh.SalesPersonID
-	GROUP BY 
-		soh.SalesOrderID
-		, CONCAT(cp.FirstName, ' ', cp.LastName)
-		, CONCAT(sp.FirstName, ' ', sp.LastName)
-		, cp.PersonType
-		, OrderDate
-		)
-UPDATE Sales.SalesOrderHeader
-SET Comment = CTE.Comment
-FROM Sales.SalesOrderHeader soh
-INNER JOIN CTE on CTE.SalesOrderID = soh.SalesOrderID
-;
+  SELECT 
+    soh.SalesOrderID, 
+    (
+      CONCAT(cp.FirstName, ' ', cp.LastName) + ' is an(n) ' + CASE WHEN cp.PersonType = 'IN' THEN 'Individual Customer' WHEN cp.PersonType = 'SC' THEN 'Store Contact' ELSE NULL END + ' and purchased ' + CAST(
+        SUM(OrderQty) AS varchar
+      ) + ' product(s) from ' + CASE WHEN CONCAT(sp.FirstName, ' ', sp.LastName) = ' ' THEN 'No sales person' ELSE CONCAT(sp.FirstName, ' ', sp.LastName) END + ' on ' + CONVERT(varchar, soh.OrderDate, 101)
+    ) as Comment 
+  FROM 
+    Sales.SalesOrderHeader soh 
+    INNER JOIN Sales.SalesOrderDetail sod on soh.SalesOrderID = sod.SalesOrderID 
+    INNER JOIN Sales.Customer c on c.CustomerID = soh.CustomerID 
+    INNER JOIN Person.Person cp on cp.BusinessEntityID = c.PersonID 
+    LEFT JOIN Person.Person sp on sp.BusinessEntityID = soh.SalesPersonID 
+  GROUP BY 
+    soh.SalesOrderID, 
+    CONCAT(cp.FirstName, ' ', cp.LastName), 
+    CONCAT(sp.FirstName, ' ', sp.LastName), 
+    cp.PersonType, 
+    OrderDate
+) 
+UPDATE 
+  Sales.SalesOrderHeader 
+SET 
+  Comment = CTE.Comment 
+FROM 
+  Sales.SalesOrderHeader soh 
+  INNER JOIN CTE on CTE.SalesOrderID = soh.SalesOrderID;
+
 
 -- to rollback to original comment is null
-UPDATE Sales.SalesOrderHeader
-SET Comment = NULL
-;
+UPDATE 
+  Sales.SalesOrderHeader 
+SET 
+  Comment = NULL;
 
 /*
 Question 43
@@ -113,18 +113,46 @@ b. How many Sales People have YTD sales greater than the average Sales Person YT
 */
 
 --a.
-SELECT COUNT(*) as CNT
-FROM(
-	SELECT *
-	FROM Sales.SalesPerson sp
-	WHERE sp.SalesYTD > sp.SalesQuota
-	) a
+SELECT 
+  COUNT(*) as CNT 
+FROM 
+  (
+    SELECT 
+      * 
+    FROM 
+      Sales.SalesPerson sp 
+    WHERE 
+      sp.SalesYTD > sp.SalesQuota
+  ) a --b.
+SELECT 
+  COUNT(*) as CNT 
+FROM 
+  Sales.SalesPerson sp 
+WHERE 
+  sp.SalesYTD > (
+    SELECT 
+      AVG(SalesYTD) 
+    FROM 
+      Sales.SalesPerson sp
+  )
 
---b.
-SELECT COUNT(*) as CNT
-FROM Sales.SalesPerson sp
-WHERE sp.SalesYTD >
-	(
-	SELECT AVG(SalesYTD)
-	FROM Sales.SalesPerson sp
-	) 
+
+/*
+a. 	Create a stored procedure called "Sales_Report_YTD" without an output parameter
+	that will show the sales people the following information:
+
+    BusinessEntityID
+    CommissionPct
+    SalesYTD
+    Commission
+    Bonus
+
+b. Execute the Stored Procedure
+c. Delete the Stored Procedure
+
+Hint:
+
+(SalesYTD x CommissionPct) = Commission
+
+Use the salesperson table
+*/

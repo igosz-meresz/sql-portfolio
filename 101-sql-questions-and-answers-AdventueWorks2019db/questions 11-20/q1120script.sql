@@ -12,30 +12,34 @@ d. How many of these employees are sales people?
 */
 --a.
 SELECT 
-	COUNT (*) as total_emp_count
-FROM HumanResources.Employee e;
-
+  COUNT (*) as total_emp_count 
+FROM 
+  HumanResources.Employee e;
 --b.
 SELECT 
-	COUNT(*) as active_emp_count
-from HumanResources.Employee e
-LEFT JOIN 
-	HumanResources.EmployeeDepartmentHistory edh on e.BusinessEntityID = edh.BusinessEntityID
-where edh.EndDate is null;
-
+  COUNT(*) as active_emp_count 
+from 
+  HumanResources.Employee e 
+  LEFT JOIN HumanResources.EmployeeDepartmentHistory edh on e.BusinessEntityID = edh.BusinessEntityID 
+where 
+  edh.EndDate is null;
 --c.
 SELECT 
-	count(distinct e.JobTitle) whatever_this_is_count
-FROM Person.Person p
-INNER JOIN HumanResources.Employee e on p.BusinessEntityID = e.BusinessEntityID
-WHERE p.PersonType = 'SP';
-
+  count(distinct e.JobTitle) whatever_this_is_count 
+FROM 
+  Person.Person p 
+  INNER JOIN HumanResources.Employee e on p.BusinessEntityID = e.BusinessEntityID 
+WHERE 
+  p.PersonType = 'SP';
 --d.
 SELECT 
-	COUNT(distinct e.BusinessEntityID) as sales_people_count
-FROM Person.Person p
-INNER JOIN HumanResources.Employee e on p.BusinessEntityID = e.BusinessEntityID
-WHERE p.PersonType = 'SP';
+  COUNT(distinct e.BusinessEntityID) as sales_people_count 
+FROM 
+  Person.Person p 
+  INNER JOIN HumanResources.Employee e on p.BusinessEntityID = e.BusinessEntityID 
+WHERE 
+  p.PersonType = 'SP';
+
 
 /*
 Question 12:
@@ -49,21 +53,23 @@ c. Who reports to the CEO? Includes their names and title
 
 --a & b
 select 
-	e.HireDate
-	, CONCAT (p.FirstName, ' ', p.LastName) AS full_name
-from HumanResources.Employee e
-left join Person.Person p on e.BusinessEntityID = p.BusinessEntityID
-where e.JobTitle = 'Chief Executive Officer'
-;
-
+  e.HireDate, 
+  CONCAT (p.FirstName, ' ', p.LastName) AS full_name 
+from 
+  HumanResources.Employee e 
+  left join Person.Person p on e.BusinessEntityID = p.BusinessEntityID 
+where 
+  e.JobTitle = 'Chief Executive Officer';
 -- c
 select 
-	e.JobTitle
-	, CONCAT (p.FirstName, ' ', p.LastName) AS full_name
-from HumanResources.Employee e
-left join Person.Person p on e.BusinessEntityID = p.BusinessEntityID
-where e.OrganizationLevel = '1'
-;
+  e.JobTitle, 
+  CONCAT (p.FirstName, ' ', p.LastName) AS full_name 
+from 
+  HumanResources.Employee e 
+  left join Person.Person p on e.BusinessEntityID = p.BusinessEntityID 
+where 
+  e.OrganizationLevel = '1';
+
 
 /*
 Question 13
@@ -73,16 +79,19 @@ a. What is the job title for John Evans
 b. What department does John Evans work in?
 */
 select 
-	CONCAT (p.FirstName, ' ', p.LastName) AS full_name
-	, e.JobTitle
-	, edh.DepartmentID
-	, d.Name
-from HumanResources.Employee e
-left join Person.Person p on e.BusinessEntityID = p.BusinessEntityID
-left join HumanResources.EmployeeDepartmentHistory edh on p.BusinessEntityID = edh.BusinessEntityID
-left join HumanResources.Department d on edh.DepartmentID = d.DepartmentID
-where p.FirstName = 'John' and p.LastName = 'Evans'
-;
+  CONCAT (p.FirstName, ' ', p.LastName) AS full_name, 
+  e.JobTitle, 
+  edh.DepartmentID, 
+  d.Name 
+from 
+  HumanResources.Employee e 
+  left join Person.Person p on e.BusinessEntityID = p.BusinessEntityID 
+  left join HumanResources.EmployeeDepartmentHistory edh on p.BusinessEntityID = edh.BusinessEntityID 
+  left join HumanResources.Department d on edh.DepartmentID = d.DepartmentID 
+where 
+  p.FirstName = 'John' 
+  and p.LastName = 'Evans';
+
 
 /*
 Question 14
@@ -99,59 +108,53 @@ d. How many vendors are active and Not Preferred?
 
 --a.
 SELECT 
-	v.name
-	, CAST(v.CreditRating as decimal) as CreditRating
-FROM Purchasing.Vendor v
-WHERE CreditRating = 1
-;
-
+  v.name, 
+  CAST(v.CreditRating as decimal) as CreditRating 
+FROM 
+  Purchasing.Vendor v 
+WHERE 
+  CreditRating = 1;
 --b.
-SELECT
-	COUNT(*) AS PreferredVendorCount
-FROM ( 
-	SELECT 
-	v.PreferredVendorStatus as PreferredVendorStatusDecimal
-	, case 
-		when v.PreferredVendorStatus = 1 then 'Preferred'
-		else 'Not Preferred'
-		end as PreferredVendorStatus
-	FROM Purchasing.Vendor v
-	) as subquery
-WHERE subquery.PreferredVendorStatus = 'Preferred';
-;
-
+SELECT 
+  COUNT(*) AS PreferredVendorCount 
+FROM 
+  (
+    SELECT 
+      v.PreferredVendorStatus as PreferredVendorStatusDecimal, 
+      case when v.PreferredVendorStatus = 1 then 'Preferred' else 'Not Preferred' end as PreferredVendorStatus 
+    FROM 
+      Purchasing.Vendor v
+  ) as subquery 
+WHERE 
+  subquery.PreferredVendorStatus = 'Preferred';
 Select 
-	Case when PreferredVendorStatus = '1' Then 'Preferred'
-		 Else 'Not Preferred' End as PreferredStatus
-	,count(*) as CNT
-From Purchasing.Vendor
+  Case when PreferredVendorStatus = '1' Then 'Preferred' Else 'Not Preferred' End as PreferredStatus, 
+  count(*) as CNT 
+From 
+  Purchasing.Vendor 
 Group by 
-	Case when PreferredVendorStatus = '1' Then 'Preferred'
-		 Else 'Not Preferred' End
-		 ;
-
+  Case when PreferredVendorStatus = '1' Then 'Preferred' Else 'Not Preferred' End;
 --c.
-SELECT
-	case 
-		when v.PreferredVendorStatus = 1 then 'Preferred'
-		else 'Not Preferred'
-		end as PreferredVendorStatus
-	, AVG(CAST(v.CreditRating as decimal)) as avgRating
-FROM Purchasing.Vendor v
-WHERE v.ActiveFlag = 1
+SELECT 
+  case when v.PreferredVendorStatus = 1 then 'Preferred' else 'Not Preferred' end as PreferredVendorStatus, 
+  AVG(
+    CAST(v.CreditRating as decimal)
+  ) as avgRating 
+FROM 
+  Purchasing.Vendor v 
+WHERE 
+  v.ActiveFlag = 1 
 group by 
-	case 
-		when v.PreferredVendorStatus = 1 then 'Preferred'
-		else 'Not Preferred'
-		end
-		;
-
+  case when v.PreferredVendorStatus = 1 then 'Preferred' else 'Not Preferred' end;
 --d.
-select
-	 COUNT(*) as activeNotPreferredCnt
-from Purchasing.Vendor
-where ActiveFlag = 1 and PreferredVendorStatus = 0
-;
+select 
+  COUNT(*) as activeNotPreferredCnt 
+from 
+  Purchasing.Vendor 
+where 
+  ActiveFlag = 1 
+  and PreferredVendorStatus = 0;
+
 
 /*
 Question 15:
@@ -166,27 +169,53 @@ c. Use the ceiling function to round up
 
 d. Use the floor function to round down
 */
-SELECT DATEFROMPARTS(2014, 8, 15) as MyDate;
-
+SELECT 
+  DATEFROMPARTS(2014, 8, 15) as MyDate;
 --a.
-SELECT
-	e.BusinessEntityID
-	, e.BirthDate
-	, DATEDIFF(year, e.BirthDate, DATEFROMPARTS(2014, 8, 15)) as EmpAge --I could simply write '2014-08-15'
-FROM HumanResources.Employee e
-ORDER BY EmpAge DESC
-;
-
+SELECT 
+  e.BusinessEntityID, 
+  e.BirthDate, 
+  DATEDIFF(
+    year, 
+    e.BirthDate, 
+    DATEFROMPARTS(2014, 8, 15)
+  ) as EmpAge --I could simply write '2014-08-15'
+FROM 
+  HumanResources.Employee e 
+ORDER BY 
+  EmpAge DESC;
 --b, c, d
-SELECT
-	CAST(AVG(DATEDIFF(year, e.BirthDate, '2014-08-15')) AS DECIMAL (10,1)) as AvgEmpAge
-	, CEILING(CAST(AVG(DATEDIFF(year, e.BirthDate, '2014-08-15')) AS DECIMAL(10,1))) as CeilingEmpAge
-	, FLOOR(CAST(AVG(DATEDIFF(year, e.BirthDate, '2014-08-15')) AS DECIMAL(10,1))) as FloorEmpAge
-	, AVG(cast(datediff(year, BirthDate, '2014-08-15') as decimal))
-	, OrganizationLevel
-FROM HumanResources.Employee e
-GROUP BY OrganizationLevel
-;
+SELECT 
+  CAST(
+    AVG(
+      DATEDIFF(year, e.BirthDate, '2014-08-15')
+    ) AS DECIMAL (10, 1)
+  ) as AvgEmpAge, 
+  CEILING(
+    CAST(
+      AVG(
+        DATEDIFF(year, e.BirthDate, '2014-08-15')
+      ) AS DECIMAL(10, 1)
+    )
+  ) as CeilingEmpAge, 
+  FLOOR(
+    CAST(
+      AVG(
+        DATEDIFF(year, e.BirthDate, '2014-08-15')
+      ) AS DECIMAL(10, 1)
+    )
+  ) as FloorEmpAge, 
+  AVG(
+    cast(
+      datediff(year, BirthDate, '2014-08-15') as decimal
+    )
+  ), 
+  OrganizationLevel 
+FROM 
+  HumanResources.Employee e 
+GROUP BY 
+  OrganizationLevel;
+
 
 /*
 Question 16:
@@ -199,31 +228,39 @@ c. How many of these active products are made in house vs. purchased?
 --Production.Product MakeFlag
 */
 
-select top 10 * from Production.Product;
-
+select 
+  top 10 * 
+from 
+  Production.Product;
 -- a.
-SELECT
-	COUNT(distinct ProductID) as prodCount
-FROM Production.Product
-WHERE FinishedGoodsFlag = 1
-;
-
+SELECT 
+  COUNT(distinct ProductID) as prodCount 
+FROM 
+  Production.Product 
+WHERE 
+  FinishedGoodsFlag = 1;
 --b.
-SELECT
-	COUNT(distinct ProductID) as prodCount
-FROM Production.Product
-WHERE SellEndDate IS NULL
-AND FinishedGoodsFlag = 1
-;
-
+SELECT 
+  COUNT(distinct ProductID) as prodCount 
+FROM 
+  Production.Product 
+WHERE 
+  SellEndDate IS NULL 
+  AND FinishedGoodsFlag = 1;
 --c.
-SELECT
-	COUNT(distinct CASE WHEN p.MakeFlag = 0 THEN p.ProductID END) as purchasedProdCnt
-	, COUNT(distinct CASE WHEN p.MakeFlag = 1 THEN p.ProductID END) as inHouseProdCnt
-FROM Production.Product p
-WHERE SellEndDate IS NULL
-AND FinishedGoodsFlag = 1
-;
+SELECT 
+  COUNT(
+    distinct CASE WHEN p.MakeFlag = 0 THEN p.ProductID END
+  ) as purchasedProdCnt, 
+  COUNT(
+    distinct CASE WHEN p.MakeFlag = 1 THEN p.ProductID END
+  ) as inHouseProdCnt 
+FROM 
+  Production.Product p 
+WHERE 
+  SellEndDate IS NULL 
+  AND FinishedGoodsFlag = 1;
+
 
 /*
 Question 17
@@ -241,43 +278,65 @@ d. What is the average LineTotal per SalesOrderID?
 */
 
 --a.
-SELECT
-	FORMAT(SUM(LineTotal), 'C', 'en-us') as TotalAmount
-FROM Sales.SalesOrderDetail
-;
-
+SELECT 
+  FORMAT(
+    SUM(LineTotal), 
+    'C', 
+    'en-us'
+  ) as TotalAmount 
+FROM 
+  Sales.SalesOrderDetail;
 --b
-SELECT
-	CASE WHEN p.MakeFlag = 0 THEN 'Purchased' ELSE 'Manufactured' END AS MakeFlagDesc
-	, FORMAT(sum(od.LineTotal), 'C', 'en-us') as TotalAmount
-FROM Sales.SalesOrderDetail od
-LEFT JOIN Production.Product p on od.ProductID = p.ProductID
+SELECT 
+  CASE WHEN p.MakeFlag = 0 THEN 'Purchased' ELSE 'Manufactured' END AS MakeFlagDesc, 
+  FORMAT(
+    sum(od.LineTotal), 
+    'C', 
+    'en-us'
+  ) as TotalAmount 
+FROM 
+  Sales.SalesOrderDetail od 
+  LEFT JOIN Production.Product p on od.ProductID = p.ProductID 
 GROUP BY 
-	p.MakeFlag
-;
-
+  p.MakeFlag;
 --c
-SELECT
-	CASE WHEN p.MakeFlag = 0 THEN 'Purchased' ELSE 'Manufactured' END AS MakeFlagDesc
-	, FORMAT(sum(od.LineTotal), 'C', 'en-us') as TotalAmount
-	, FORMAT(COUNT(DISTINCT od.SalesOrderID), 'N0') as OrderCnt
-FROM Sales.SalesOrderDetail od
-LEFT JOIN Production.Product p on od.ProductID = p.ProductID
+SELECT 
+  CASE WHEN p.MakeFlag = 0 THEN 'Purchased' ELSE 'Manufactured' END AS MakeFlagDesc, 
+  FORMAT(
+    sum(od.LineTotal), 
+    'C', 
+    'en-us'
+  ) as TotalAmount, 
+  FORMAT(
+    COUNT(DISTINCT od.SalesOrderID), 
+    'N0'
+  ) as OrderCnt 
+FROM 
+  Sales.SalesOrderDetail od 
+  LEFT JOIN Production.Product p on od.ProductID = p.ProductID 
 GROUP BY 
-	p.MakeFlag
-;
-
+  p.MakeFlag;
 --d.
-SELECT
-	CASE WHEN p.MakeFlag = 0 THEN 'Purchased' ELSE 'Manufactured' END AS MakeFlagDesc
-	, FORMAT(sum(od.LineTotal), 'C', 'en-us') as TotalAmount
-	, FORMAT(COUNT(DISTINCT od.SalesOrderID), 'N0') as OrderCnt
-	, FORMAT(SUM(LineTotal)/COUNT(DISTINCT od.SalesOrderID), 'C0') AS AvgLineTotal
-FROM Sales.SalesOrderDetail od
-LEFT JOIN Production.Product p on od.ProductID = p.ProductID
+SELECT 
+  CASE WHEN p.MakeFlag = 0 THEN 'Purchased' ELSE 'Manufactured' END AS MakeFlagDesc, 
+  FORMAT(
+    sum(od.LineTotal), 
+    'C', 
+    'en-us'
+  ) as TotalAmount, 
+  FORMAT(
+    COUNT(DISTINCT od.SalesOrderID), 
+    'N0'
+  ) as OrderCnt, 
+  FORMAT(
+    SUM(LineTotal)/ COUNT(DISTINCT od.SalesOrderID), 
+    'C0'
+  ) AS AvgLineTotal 
+FROM 
+  Sales.SalesOrderDetail od 
+  LEFT JOIN Production.Product p on od.ProductID = p.ProductID 
 GROUP BY 
-	p.MakeFlag
-;
+  p.MakeFlag;
 
 /*
 Question 18
@@ -305,36 +364,65 @@ S = Sales Order
 */
 
 --b.
-SELECT * FROM Production.TransactionHistory
-UNION --ALL
-SELECT * FROM Production.TransactionHistoryArchive
-;
-
+SELECT 
+  * 
+FROM 
+  Production.TransactionHistory 
+UNION 
+  --ALL
+SELECT 
+  * 
+FROM 
+  Production.TransactionHistoryArchive;
 -- c.
-Select  
-	Cast(MIN(TransactionDate) as Date) as FirstDate
-	,Convert(date,MAX(TransactionDate)) as LastDate
-From(
-Select * from Production.TransactionHistoryArchive
-Union
-Select * from Production.TransactionHistory) a
+Select 
+  Cast(
+    MIN(TransactionDate) as Date
+  ) as FirstDate, 
+  Convert(
+    date, 
+    MAX(TransactionDate)
+  ) as LastDate 
+From 
+  (
+    Select 
+      * 
+    from 
+      Production.TransactionHistoryArchive 
+    Union 
+    Select 
+      * 
+    from 
+      Production.TransactionHistory
+  ) a 
+  --d. 
+  -- so basiaclly if i need to select min, max, aggregations etc.
+  -- for various categories of variables write CASE WHEN statement
+Select 
+  Case When TransactionType = 'W' Then 'WorkOrder' When TransactionType = 'S' Then 'SalesOrder' When TransactionType = 'P' Then 'PurchaseOrder' Else Null End as TransactionType, 
+  Convert(
+    date, 
+    MIN(TransactionDate)
+  ) as FirstDate, 
+  Convert(
+    date, 
+    MAX(TransactionDate)
+  ) as LastDate 
+From 
+  (
+    Select 
+      * 
+    from 
+      Production.TransactionHistoryArchive 
+    Union 
+    Select 
+      * 
+    from 
+      Production.TransactionHistory
+  ) a 
+Group by 
+  TransactionType;
 
---d. 
--- so basiaclly if i need to select min, max, aggregations etc.
--- for various categories of variables write CASE WHEN statement
-Select  
-	Case When TransactionType = 'W' Then 'WorkOrder'
-		 When TransactionType = 'S' Then 'SalesOrder'
-		 When TransactionType = 'P' Then 'PurchaseOrder'
-		 Else Null End as TransactionType
-	,Convert(date,MIN(TransactionDate)) as FirstDate
-	,Convert(date,MAX(TransactionDate)) as LastDate
-From(
-Select * from Production.TransactionHistoryArchive
-Union
-Select * from Production.TransactionHistory) a
-Group by TransactionType
-;
 
 /*
 Question 19
@@ -344,11 +432,16 @@ and the First Sales Order transaction occurred on 2011-05-31.
 
 Does the SalesOrderHeader table show a similar Order date for the first and Last Sale? Format as Date 
 */
-SELECT
-	MIN(cast(soh.OrderDate as date)) as firstOrder
-	, MAX(convert(date, soh.OrderDate)) as lastOrder
-FROM Sales.SalesOrderHeader soh
-;
+SELECT 
+  MIN(
+    cast(soh.OrderDate as date)
+  ) as firstOrder, 
+  MAX(
+    convert(date, soh.OrderDate)
+  ) as lastOrder 
+FROM 
+  Sales.SalesOrderHeader soh;
+
 -- yes, they do
 
 /*
@@ -364,15 +457,24 @@ b. Do the dates match? Why/Why not?
 */
 
 --a.
-SELECT
-	MIN(convert(varchar, StartDate, 23)) as workOrderMinDate
-	, MAX(convert(varchar, StartDate, 23)) as workOrderMaxDate
-FROM Production.WorkOrder;
-
-SELECT
-	MIN(convert(varchar, OrderDate, 23)) as purchaseOrderMinDate
-	, MAX(convert(varchar, OrderDate, 23)) as purchaseOrderMaxDate
-FROM Purchasing.PurchaseOrderHeader;
+SELECT 
+  MIN(
+    convert(varchar, StartDate, 23)
+  ) as workOrderMinDate, 
+  MAX(
+    convert(varchar, StartDate, 23)
+  ) as workOrderMaxDate 
+FROM 
+  Production.WorkOrder;
+SELECT 
+  MIN(
+    convert(varchar, OrderDate, 23)
+  ) as purchaseOrderMinDate, 
+  MAX(
+    convert(varchar, OrderDate, 23)
+  ) as purchaseOrderMaxDate 
+FROM 
+  Purchasing.PurchaseOrderHeader;
 
 --b.
 -- work order matches, purchase order doesn't

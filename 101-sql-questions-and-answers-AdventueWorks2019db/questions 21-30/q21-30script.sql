@@ -17,30 +17,38 @@ b. Use a left join when joining SalesTaxRate to StateProvince
 c. Find the countries/states that have more than 1 tax rate
 */
 --a.
-SELECT
-	cr.Name as CountryName
-	, sp.Name as StateName
-FROM Person.StateProvince sp 
-INNER JOIN Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode
+SELECT 
+  cr.Name as CountryName, 
+  sp.Name as StateName 
+FROM 
+  Person.StateProvince sp 
+  INNER JOIN Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode
+
 
 --b.
-SELECT
-	sp.Name
-	, sp.StateProvinceCode
-	, st.TaxRate
-FROM Person.StateProvince sp
-LEFT JOIN Sales.SalesTaxRate st on sp.StateProvinceID = st.StateProvinceID
-ORDER BY st.TaxRate DESC;
-
+SELECT 
+  sp.Name, 
+  sp.StateProvinceCode, 
+  st.TaxRate 
+FROM 
+  Person.StateProvince sp 
+  LEFT JOIN Sales.SalesTaxRate st on sp.StateProvinceID = st.StateProvinceID 
+ORDER BY 
+  st.TaxRate DESC;
 -- countries/states with more than 1 tax rate:
-SELECT
-	sp.StateProvinceID as StateRegionCode
-	, sp.Name
-	, COUNT(*) as NumberOfTaxRates
-FROM Person.StateProvince sp
-INNER JOIN Sales.SalesTaxRate st on sp.StateProvinceID = st.StateProvinceID 
-GROUP BY sp.StateProvinceID, sp.Name
-HAVING COUNT(*) > 1;
+SELECT 
+  sp.StateProvinceID as StateRegionCode, 
+  sp.Name, 
+  COUNT(*) as NumberOfTaxRates 
+FROM 
+  Person.StateProvince sp 
+  INNER JOIN Sales.SalesTaxRate st on sp.StateProvinceID = st.StateProvinceID 
+GROUP BY 
+  sp.StateProvinceID, 
+  sp.Name 
+HAVING 
+  COUNT(*) > 1;
+
 
 /*
 Question 22
@@ -59,24 +67,30 @@ b. Be sure the total retail customers found in part a doesn't change  as you joi
 c. Multiple ways to do this. Try using an Inner Query
 */
 --a.
-SELECT
-	distinct(COUNT(p.BusinessEntityID)) as individualCustCount
-FROM Person.Person p
-WHERE p.PersonType = 'IN';
-
+SELECT 
+  distinct(
+    COUNT(p.BusinessEntityID)
+  ) as individualCustCount 
+FROM 
+  Person.Person p 
+WHERE 
+  p.PersonType = 'IN';
 --b
 --with temp as (
-SELECT
-	count(distinct p.BusinessEntityID) as custCount
-	, cr.Name as Country
-FROM Person.Person p
-	LEFT JOIN Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID
-	LEFT JOIN Person.Address a on bea.AddressID = a.AddressID
-	LEFT JOIN Person.StateProvince sp on a.StateProvinceID = sp.StateProvinceID
-	LEFT JOIN Person.CountryRegion cr on sp.CountryRegionCode = cr.CountryRegionCode
-WHERE p.PersonType = 'IN'
-GROUP BY cr.Name
-;
+SELECT 
+  count(distinct p.BusinessEntityID) as custCount, 
+  cr.Name as Country 
+FROM 
+  Person.Person p 
+  LEFT JOIN Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID 
+  LEFT JOIN Person.Address a on bea.AddressID = a.AddressID 
+  LEFT JOIN Person.StateProvince sp on a.StateProvinceID = sp.StateProvinceID 
+  LEFT JOIN Person.CountryRegion cr on sp.CountryRegionCode = cr.CountryRegionCode 
+WHERE 
+  p.PersonType = 'IN' 
+GROUP BY 
+  cr.Name;
+
 /*
 )
 SELECT
@@ -86,41 +100,74 @@ FROM temp
 */
 
 --c.
-SELECT
-	count(distinct p.BusinessEntityID) as custCount
-	, cr.Name as Country
-	, CONCAT(ROUND((COUNT(DISTINCT p.BusinessEntityID) * 100.0 / t.total), 2), '%') as '% of total'
-FROM Person.Person p
-	LEFT JOIN Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID
-	LEFT JOIN Person.Address a on bea.AddressID = a.AddressID
-	LEFT JOIN Person.StateProvince sp on a.StateProvinceID = sp.StateProvinceID
-	LEFT JOIN Person.CountryRegion cr on sp.CountryRegionCode = cr.CountryRegionCode
-	--The CROSS JOIN is used to join the subquery result with the main query, so that the total count is available for all rows.
-	CROSS JOIN (
-		SELECT 
-			COUNT(DISTINCT p2.BusinessEntityID) as total 
-		FROM Person.Person p2 
-		WHERE p2.PersonType = 'IN'
-		) as t
-WHERE p.PersonType = 'IN'
-GROUP BY cr.Name, t.total;
+SELECT 
+  count(distinct p.BusinessEntityID) as custCount, 
+  cr.Name as Country, 
+  CONCAT(
+    ROUND(
+      (
+        COUNT(DISTINCT p.BusinessEntityID) * 100.0 / t.total
+      ), 
+      2
+    ), 
+    '%'
+  ) as '% of total' 
+FROM 
+  Person.Person p 
+  LEFT JOIN Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID 
+  LEFT JOIN Person.Address a on bea.AddressID = a.AddressID 
+  LEFT JOIN Person.StateProvince sp on a.StateProvinceID = sp.StateProvinceID 
+  LEFT JOIN Person.CountryRegion cr on sp.CountryRegionCode = cr.CountryRegionCode 
+  --The CROSS JOIN is used to join the subquery result with the main query, so that the total count is available for all rows.
+  CROSS 
+  JOIN (
+    SELECT 
+      COUNT(DISTINCT p2.BusinessEntityID) as total 
+    FROM 
+      Person.Person p2 
+    WHERE 
+      p2.PersonType = 'IN'
+  ) as t 
+WHERE 
+  p.PersonType = 'IN' 
+GROUP BY 
+  cr.Name, 
+  t.total;
+
 
 --alternatively
 Select 
-	cr.Name as Country
-	,Format(count(Distinct p.BusinessEntityID),'N0') as CNT
-	,Format(Cast(count(Distinct p.BusinessEntityID) as float)
-		/(Select count(BusinessEntityID) 
-		  from Person.Person 
-		  Where PersonType = 'IN'),'P') as '%ofTotal'
-from Person.Person p
-	Inner Join Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID
-	Inner Join Person.Address a on a.AddressID = bea.AddressID
-	Inner Join Person.StateProvince sp on sp.StateProvinceID = a.StateProvinceID
-	Inner Join Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode
-Where PersonType = 'IN'
-Group by cr.Name
-Order by 2 desc
+  cr.Name as Country, 
+  Format(
+    count(Distinct p.BusinessEntityID), 
+    'N0'
+  ) as CNT, 
+  Format(
+    Cast(
+      count(Distinct p.BusinessEntityID) as float
+    ) /(
+      Select 
+        count(BusinessEntityID) 
+      from 
+        Person.Person 
+      Where 
+        PersonType = 'IN'
+    ), 
+    'P'
+  ) as '%ofTotal' 
+from 
+  Person.Person p 
+  Inner Join Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID 
+  Inner Join Person.Address a on a.AddressID = bea.AddressID 
+  Inner Join Person.StateProvince sp on sp.StateProvinceID = a.StateProvinceID 
+  Inner Join Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode 
+Where 
+  PersonType = 'IN' 
+Group by 
+  cr.Name 
+Order by 
+  2 desc
+
 
 /*
 Question 23
@@ -132,50 +179,80 @@ Write the syntax necessary to make the "Desired Query" Functional.
 */
 
 -- current query:
-    Select 
-    	cr.Name as Country
-    	,Format(count(Distinct p.BusinessEntityID),'N0') as CNT
-    	,Format(Cast(count(Distinct p.BusinessEntityID) as float)
-    		/
-    			(Select count(BusinessEntityID) 
-     			 from Person.Person 
-    		     Where PersonType = 'IN'),'P') as '%ofTotal'
-     
-    from Person.Person p
-    	Inner Join Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID
-    	Inner Join Person.Address a on a.AddressID = bea.AddressID
-    	Inner Join Person.StateProvince sp on sp.StateProvinceID = a.StateProvinceID
-    	Inner Join Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode
-    Where PersonType = 'IN'
-    Group by cr.Name
-    Order by 2 desc
+Select 
+  cr.Name as Country, 
+  Format(
+    count(Distinct p.BusinessEntityID), 
+    'N0'
+  ) as CNT, 
+  Format(
+    Cast(
+      count(Distinct p.BusinessEntityID) as float
+    ) / (
+      Select 
+        count(BusinessEntityID) 
+      from 
+        Person.Person 
+      Where 
+        PersonType = 'IN'
+    ), 
+    'P'
+  ) as '%ofTotal' 
+from 
+  Person.Person p 
+  Inner Join Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID 
+  Inner Join Person.Address a on a.AddressID = bea.AddressID 
+  Inner Join Person.StateProvince sp on sp.StateProvinceID = a.StateProvinceID 
+  Inner Join Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode 
+Where 
+  PersonType = 'IN' 
+Group by 
+  cr.Name 
+Order by 
+  2 desc
+
 
 -- desired query:
     
 -- declare and set variable @TotalRetailCustomers
 -- must run all three part at the same time
 DECLARE @TotalRetailCustomers INT;
-SET @TotalRetailCustomers = (
-	Select count(BusinessEntityID) 
-     			 from Person.Person 
-    		     Where PersonType = 'IN'
-);
+SET 
+  @TotalRetailCustomers = (
+    Select 
+      count(BusinessEntityID) 
+    from 
+      Person.Person 
+    Where 
+      PersonType = 'IN'
+  );
+
 	
-	Select 
-    	cr.Name as Country
-    	,Format(count(Distinct p.BusinessEntityID),'N0') as CNT
-    	,Format(Cast(count(Distinct p.BusinessEntityID) as float)
-    		/
-    			@TotalRetailCustomers,'P') as '%ofTotal'
-     
-    from Person.Person p
-    	Inner Join Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID
-    	Inner Join Person.Address a on a.AddressID = bea.AddressID
-    	Inner Join Person.StateProvince sp on sp.StateProvinceID = a.StateProvinceID
-    	Inner Join Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode
-    Where PersonType = 'IN'
-    Group by cr.Name
-    Order by 2 desc;
+Select 
+  cr.Name as Country, 
+  Format(
+    count(Distinct p.BusinessEntityID), 
+    'N0'
+  ) as CNT, 
+  Format(
+    Cast(
+      count(Distinct p.BusinessEntityID) as float
+    ) / @TotalRetailCustomers, 
+    'P'
+  ) as '%ofTotal' 
+from 
+  Person.Person p 
+  Inner Join Person.BusinessEntityAddress bea on bea.BusinessEntityID = p.BusinessEntityID 
+  Inner Join Person.Address a on a.AddressID = bea.AddressID 
+  Inner Join Person.StateProvince sp on sp.StateProvinceID = a.StateProvinceID 
+  Inner Join Person.CountryRegion cr on cr.CountryRegionCode = sp.CountryRegionCode 
+Where 
+  PersonType = 'IN' 
+Group by 
+  cr.Name 
+Order by 
+  2 desc;
+
 
 /*
 Question 24
@@ -192,18 +269,19 @@ Use SalesOrderDetail to join Product and SalesOrderHeader
 --a, b, c.
 -- SubTotal is price where tax, freight are not included
 -- if you sum LineTotal for this order it will match SubTotal
-SELECT
-	SubTotal
-	, TaxAmt
-	, Freight
-	, TotalDue
-	-- this is how TotalDue is calculated in SalesOrderHeader
-	--, SubTotal + TaxAmt + Freight as sumOfTotal
-	, sod.LineTotal
-FROM Sales.SalesOrderHeader soh
-JOIN Sales.SalesOrderDetail sod on soh.SalesOrderID = sod.SalesOrderID
-WHERE sod.SalesOrderID = 69411
-;
+SELECT 
+  SubTotal, 
+  TaxAmt, 
+  Freight, 
+  TotalDue,
+  -- this is how TotalDue is calculated in SalesOrderHeader
+  --, SubTotal + TaxAmt + Freight as sumOfTotal
+  sod.LineTotal 
+FROM 
+  Sales.SalesOrderHeader soh 
+  JOIN Sales.SalesOrderDetail sod on soh.SalesOrderID = sod.SalesOrderID 
+WHERE 
+  sod.SalesOrderID = 69411;
 
 --d.
 --LineTotal is per product subtotal. Computed as OrderQty * UnitPrice.
@@ -220,19 +298,23 @@ Which product has the best margins? (Highest Net Revenue)
 Hint
 List Price and Standard Cost in Production.Product
 */
-SELECT
-	p.Name
-	, p.ProductID
-	, FORMAT(p.StandardCost, 'C0') as StandardCost
-	, FORMAT(p.ListPrice, 'C0') as ListPrice
-	, FORMAT(CASE 
-				WHEN p.ListPrice = 0 THEN 0
-				ELSE p.ListPrice / p.StandardCost
-			 END, 'P') as '% Margin'
-	, FORMAT(p.ListPrice - p.StandardCost, 'C0') as '$ Margin'
-FROM Production.Product p
-ORDER BY '$ Margin' desc
-;
+SELECT 
+  p.Name, 
+  p.ProductID, 
+  FORMAT(p.StandardCost, 'C0') as StandardCost, 
+  FORMAT(p.ListPrice, 'C0') as ListPrice, 
+  FORMAT(
+    CASE WHEN p.ListPrice = 0 THEN 0 ELSE p.ListPrice / p.StandardCost END, 
+    'P'
+  ) as '% Margin', 
+  FORMAT(
+    p.ListPrice - p.StandardCost, 'C0'
+  ) as '$ Margin' 
+FROM 
+  Production.Product p 
+ORDER BY 
+  '$ Margin' desc;
+
 
 /*
 Question 26
@@ -254,63 +336,71 @@ Use SpecialOfferProduct to join SpecialOffer and Product
 */
 
 --a.
-SELECT
-	*
-FROM Production.Product p
-WHERE p.Name LIKE '%Mountain-100%'
--- is it ProductModelID = 19?
-;
-
+SELECT 
+  * 
+FROM 
+  Production.Product p 
+WHERE 
+  p.Name LIKE '%Mountain-100%' -- is it ProductModelID = 19?
+  ;
 --b.
-SELECT
-	so.StartDate
-	, so.EndDate
-	, so.Type
-	, so.Category
-	, so.Description
-	, so.DiscountPct
-	, COUNT(DISTINCT p.Name) as prodCNT
-FROM Production.Product p
-INNER JOIN Sales.SpecialOfferProduct sop on p.ProductID = sop.ProductID
-INNER JOIN Sales.SpecialOffer so on sop.SpecialOfferID = so.SpecialOfferID
-WHERE p.ProductModelID = 19
-GROUP BY 	
-	so.StartDate
-	, so.EndDate
-	, so.Type
-	, so.Category
-	, so.Description
-	, so.DiscountPct
-;
-
+SELECT 
+  so.StartDate, 
+  so.EndDate, 
+  so.Type, 
+  so.Category, 
+  so.Description, 
+  so.DiscountPct, 
+  COUNT(DISTINCT p.Name) as prodCNT 
+FROM 
+  Production.Product p 
+  INNER JOIN Sales.SpecialOfferProduct sop on p.ProductID = sop.ProductID 
+  INNER JOIN Sales.SpecialOffer so on sop.SpecialOfferID = so.SpecialOfferID 
+WHERE 
+  p.ProductModelID = 19 
+GROUP BY 
+  so.StartDate, 
+  so.EndDate, 
+  so.Type, 
+  so.Category, 
+  so.Description, 
+  so.DiscountPct;
 --c.
-SELECT
-	p.Name
-	, sop.SpecialOfferID
-	--, COUNT(DISTINCT sop.SpecialOfferID) as SpecialOfferCnt
-	, MIN(so.StartDate) as StartDateSO
-	, MAX(so.EndDate) as EndDateSO
-	, MIN(p.DiscontinuedDate) as DiscontinuedDate
-	--, so.Description
-FROM Production.Product p
-JOIN Sales.SpecialOfferProduct sop on p.ProductID = sop.ProductID
-LEFT JOIN Sales.SpecialOffer so on sop.SpecialOfferID = so.SpecialOfferID
-WHERE p.Name LIKE '%Mountain-100%' --and p.DiscontinuedDate IS NOT NULL
-GROUP BY p.Name, sop.SpecialOfferID
-ORDER BY StartDateSO desc
-;
-
+SELECT 
+  p.Name, 
+  sop.SpecialOfferID --, COUNT(DISTINCT sop.SpecialOfferID) as SpecialOfferCnt
+  , 
+  MIN(so.StartDate) as StartDateSO, 
+  MAX(so.EndDate) as EndDateSO, 
+  MIN(p.DiscontinuedDate) as DiscontinuedDate --, so.Description
+FROM 
+  Production.Product p 
+  JOIN Sales.SpecialOfferProduct sop on p.ProductID = sop.ProductID 
+  LEFT JOIN Sales.SpecialOffer so on sop.SpecialOfferID = so.SpecialOfferID 
+WHERE 
+  p.Name LIKE '%Mountain-100%' --and p.DiscontinuedDate IS NOT NULL
+GROUP BY 
+  p.Name, 
+  sop.SpecialOfferID 
+ORDER BY 
+  StartDateSO desc;
 --d.
-SELECT
-	p.ProductID, sop.SpecialOfferID
-	, p.Name, p.ListPrice
-	, sod.UnitPrice
-	, soh.CustomerID, soh.OrderDate
-FROM Production.Product p
-INNER JOIN Sales.SpecialOfferProduct sop on p.ProductID = sop.ProductID
-INNER JOIN Sales.SalesOrderDetail sod on sop.ProductID = sod.ProductID
-INNER JOIN Sales.SalesOrderHeader soh on sod.SalesOrderID = soh.SalesOrderID
-WHERE p.Name LIKE '%Mountain-100%'
+SELECT 
+  p.ProductID, 
+  sop.SpecialOfferID, 
+  p.Name, 
+  p.ListPrice, 
+  sod.UnitPrice, 
+  soh.CustomerID, 
+  soh.OrderDate 
+FROM 
+  Production.Product p 
+  INNER JOIN Sales.SpecialOfferProduct sop on p.ProductID = sop.ProductID 
+  INNER JOIN Sales.SalesOrderDetail sod on sop.ProductID = sod.ProductID 
+  INNER JOIN Sales.SalesOrderHeader soh on sod.SalesOrderID = soh.SalesOrderID 
+WHERE 
+  p.Name LIKE '%Mountain-100%'
+
 
 /*
 Question 27
@@ -326,12 +416,16 @@ Determine whether this product model is still in stock.
 */
     
 SELECT 
-    p.Name
-	, SUM(i.quantity) as Inventory
-FROM Production.Product p
-INNER JOIN Production.ProductInventory I on i.ProductID = p.ProductID
-WHERE ProductModelID = '19'
-GROUP BY p.Name
+  p.Name, 
+  SUM(i.quantity) as Inventory 
+FROM 
+  Production.Product p 
+  INNER JOIN Production.ProductInventory I on i.ProductID = p.ProductID 
+WHERE 
+  ProductModelID = '19' 
+GROUP BY 
+  p.Name
+
 -- it is neither discontinued nor being sold
 
 /*
@@ -346,21 +440,23 @@ A single OrderID can have zero sales reasons, a single reason or multiple reason
 */
 
 --a.
-SELECT
-	distinct(sr.Name)
-FROM Sales.SalesReason sr
-;
-
+SELECT 
+  distinct(sr.Name) 
+FROM 
+  Sales.SalesReason sr;
 --b, c
-SELECT
-	sr.Name
-	, count(soh.SalesOrderID) as salesCNT
-FROM Sales.SalesReason sr
-INNER JOIN Sales.SalesOrderHeaderSalesReason sor on sr.SalesReasonID = sor.SalesReasonID
-INNER JOIN Sales.SalesOrderHeader soh on sor.SalesOrderID = soh.SalesOrderID
-GROUP BY sr.Name
-ORDER BY salesCNT desc
-;
+SELECT 
+  sr.Name, 
+  count(soh.SalesOrderID) as salesCNT 
+FROM 
+  Sales.SalesReason sr 
+  INNER JOIN Sales.SalesOrderHeaderSalesReason sor on sr.SalesReasonID = sor.SalesReasonID 
+  INNER JOIN Sales.SalesOrderHeader soh on sor.SalesOrderID = soh.SalesOrderID 
+GROUP BY 
+  sr.Name 
+ORDER BY 
+  salesCNT desc;
+
 
 /*
 Based on the results in question 28, there are 27,647 rows in the SalesOrderHeaderSalesReason table.
@@ -375,20 +471,23 @@ Hint
 With CTE_Name as (Statement) 
 */
 WITH CTE AS (
-	SELECT
-		soh.SalesOrderID
-		, COUNT(hsr.SalesOrderID) as ReasonsCNT
-	FROM Sales.SalesOrderHeader soh
-	LEFT JOIN Sales.SalesOrderHeaderSalesReason hsr on hsr.SalesOrderID = soh.SalesOrderID
-	LEFT JOIN Sales.SalesReason sr on sr.SalesReasonID = hsr.SalesReasonID
-	GROUP BY soh.SalesOrderID
-	)
-		SELECT
-			ReasonsCNT
-			, COUNT(ReasonsCNT) as CntOfSalesOrderIDs
-		FROM CTE
-		GROUP BY ReasonsCNT
-	;
+  SELECT 
+    soh.SalesOrderID, 
+    COUNT(hsr.SalesOrderID) as ReasonsCNT 
+  FROM 
+    Sales.SalesOrderHeader soh 
+    LEFT JOIN Sales.SalesOrderHeaderSalesReason hsr on hsr.SalesOrderID = soh.SalesOrderID 
+    LEFT JOIN Sales.SalesReason sr on sr.SalesReasonID = hsr.SalesReasonID 
+  GROUP BY 
+    soh.SalesOrderID
+) 
+SELECT 
+  ReasonsCNT, 
+  COUNT(ReasonsCNT) as CntOfSalesOrderIDs 
+FROM 
+  CTE 
+GROUP BY 
+  ReasonsCNT;
 
 /*
 Question 30
@@ -398,34 +497,46 @@ Is it possible to find the customers that left a review in the Person table?
 Make your best attempt at finding these customers. 
 */
 
-    Select * From Production.ProductReview
-     
+Select 
+  * 
+From 
+  Production.ProductReview 
+Select 
+  pr.*, 
+  p.Name 
+from 
+  Production.ProductReview pr 
+  Inner Join Production.Product p on p.ProductID = pr.ProductID 
+Select 
+  * 
+From 
+  Person.EmailAddress 
+Where 
+  EmailAddress in (
     Select 
-    	pr.*
-    	,p.Name
-    from Production.ProductReview pr
-    	Inner Join Production.Product p on p.ProductID = pr.ProductID
-     
-     
-    Select * From Person.EmailAddress
-    Where EmailAddress in (
-    					Select 
-    						EmailAddress
-    					from Production.ProductReview pr)
-     
-    Select * From Production.ProductReview
-     
-     
-    Select * 
-    From Sales.SalesOrderHeader soh
-    	Inner Join Person.Person p on p.BusinessEntityID = soh.CustomerID
-    	Inner Join Sales.SalesOrderDetail sod on sod.SalesOrderID = soh.SalesOrderID
-    	Inner Join Production.Product pr on pr.ProductID = sod.ProductID
-    Where FirstName like '%John%' 
-    	and LastName like '%Smith%'
-     
-     
-    Select * From HumanResources.Employee
-    	Inner Join Person.Person on Person.BusinessEntityID = Employee.BusinessEntityID
-    Where FirstName like '%Laura%' 
-    		and LastName like '%Norman%'
+      EmailAddress 
+    from 
+      Production.ProductReview pr
+  ) 
+Select 
+  * 
+From 
+  Production.ProductReview 
+Select 
+  * 
+From 
+  Sales.SalesOrderHeader soh 
+  Inner Join Person.Person p on p.BusinessEntityID = soh.CustomerID 
+  Inner Join Sales.SalesOrderDetail sod on sod.SalesOrderID = soh.SalesOrderID 
+  Inner Join Production.Product pr on pr.ProductID = sod.ProductID 
+Where 
+  FirstName like '%John%' 
+  and LastName like '%Smith%' 
+Select 
+  * 
+From 
+  HumanResources.Employee 
+  Inner Join Person.Person on Person.BusinessEntityID = Employee.BusinessEntityID 
+Where 
+  FirstName like '%Laura%' 
+  and LastName like '%Norman%'

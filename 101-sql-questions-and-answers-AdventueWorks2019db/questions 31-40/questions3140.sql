@@ -10,22 +10,32 @@ b. Update his email address to 'Ken.Sánchez@adventure-works.com'
 */
 
 --a.
-SELECT
-	e.BusinessEntityID, e.JobTitle
-	, p.FirstName, p.LastName
-	, ea.EmailAddress
-FROM HumanResources.Employee e
-JOIN Person.Person p on e.BusinessEntityID = p.BusinessEntityID
-JOIN Person.EmailAddress ea on p.BusinessEntityID = ea.BusinessEntityID
-WHERE e.BusinessEntityID = 1
+SELECT 
+  e.BusinessEntityID, 
+  e.JobTitle, 
+  p.FirstName, 
+  p.LastName, 
+  ea.EmailAddress 
+FROM 
+  HumanResources.Employee e 
+  JOIN Person.Person p on e.BusinessEntityID = p.BusinessEntityID 
+  JOIN Person.EmailAddress ea on p.BusinessEntityID = ea.BusinessEntityID 
+WHERE 
+  e.BusinessEntityID = 1
+
 
 --b.
-UPDATE ea
-SET ea.EmailAddress = 'Ken.Sánchez@adventure-works.com'
-FROM Person.EmailAddress ea
-JOIN Person.Person p ON p.BusinessEntityID = ea.BusinessEntityID
-JOIN HumanResources.Employee e ON e.BusinessEntityID = p.BusinessEntityID
-WHERE e.BusinessEntityID = 1;
+UPDATE 
+  ea 
+SET 
+  ea.EmailAddress = 'Ken.Sánchez@adventure-works.com' 
+FROM 
+  Person.EmailAddress ea 
+  JOIN Person.Person p ON p.BusinessEntityID = ea.BusinessEntityID 
+  JOIN HumanResources.Employee e ON e.BusinessEntityID = p.BusinessEntityID 
+WHERE 
+  e.BusinessEntityID = 1;
+
 
 /*
 Question 32:
@@ -77,42 +87,46 @@ If you need to update both records to the original email address then run the tw
     	Where BusinessEntityID = 1726
 */
 --a.
-    Update Person.EmailAddress
-    Set EmailAddress = 'ken0@adventure-works.com'
-    Where BusinessEntityID = 1
-     
-    Select * From Person.EmailAddress
-    Where EmailAddress = 'Ken.Sánchez@adventure-works.com'
-     
---b. 
-    Select @@TranCount as OpenTransactions
-     
---c. 
-    BEGIN TRAN 
-     
---d. 
-    Update Person.EmailAddress
-    Set EmailAddress = 'Ken.Sánchez@adventure-works.com'
-    From Person.EmailAddress ea
-    	Inner Join Person.Person p on p.BusinessEntityID = ea.BusinessEntityID
-    Where p.FirstName ='Ken'
-      and p.LastName = 'Sánchez'
-     
---e. 
-    ROLLBACK
-     
---f. 
-    Select * From Person.EmailAddress
-    Where EmailAddress = 'Ken.Sánchez@adventure-works.com'
-     
---g. 
-    BEGIN TRAN
-     
-    Update Person.EmailAddress
-    Set EmailAddress = 'Ken.Sánchez@adventure-works.com'
-    Where BusinessEntityID = 1
-     
-    COMMIT
+Update 
+  Person.EmailAddress 
+Set 
+  EmailAddress = 'ken0@adventure-works.com' 
+Where 
+  BusinessEntityID = 1 
+Select 
+  * 
+From 
+  Person.EmailAddress 
+Where 
+  EmailAddress = 'Ken.Sánchez@adventure-works.com' --b. 
+Select 
+  @@TranCount as OpenTransactions --c. 
+  BEGIN TRAN --d. 
+Update 
+  Person.EmailAddress 
+Set 
+  EmailAddress = 'Ken.Sánchez@adventure-works.com' 
+From 
+  Person.EmailAddress ea 
+  Inner Join Person.Person p on p.BusinessEntityID = ea.BusinessEntityID 
+Where 
+  p.FirstName = 'Ken' 
+  and p.LastName = 'Sánchez' --e. 
+  ROLLBACK --f. 
+Select 
+  * 
+From 
+  Person.EmailAddress 
+Where 
+  EmailAddress = 'Ken.Sánchez@adventure-works.com' --g. 
+  BEGIN TRAN 
+Update 
+  Person.EmailAddress 
+Set 
+  EmailAddress = 'Ken.Sánchez@adventure-works.com' 
+Where 
+  BusinessEntityID = 1 COMMIT
+
 
 /*
 Question 33:
@@ -150,42 +164,32 @@ Hint:
 5. Else
 6. Commit
 */
-BEGIN TRANSACTION
+BEGIN TRANSACTION 
+UPDATE 
+  Person.EmailAddress 
+SET 
+  EmailAddress = 'Ken.Sánchez@adventure-works.com' 
+WHERE 
+  BusinessEntityID = 1 IF @@ROWCOUNT = 1 BEGIN COMMIT TRANSACTION 
+SELECT 
+  'Update successful - changes committed' END ELSE BEGIN ROLLBACK TRANSACTION 
+SELECT 
+  'Update failed - changes rolled back' END --select * from Person.EmailAddress;
+  -- SCALABLE SOLUTION 
+  DECLARE @RowCNT INT = (
+    SELECT 
+      COUNT(*) 
+    FROM 
+      Person.EmailAddress 
+    WHERE 
+      BusinessEntityID = 1
+  ) BEGIN TRANSACTION 
+UPDATE 
+  Person.EmailAddress 
+SET 
+  EmailAddress = 'Ken.Sánchez@adventure-works.com' --WHERE BusinessEntityID = 1
+  IF @@ROWCOUNT = @RowCNT COMMIT ELSE ROLLBACK
 
-UPDATE Person.EmailAddress
-SET EmailAddress = 'Ken.Sánchez@adventure-works.com'
-WHERE BusinessEntityID = 1
-
-IF @@ROWCOUNT = 1
-BEGIN
-	COMMIT TRANSACTION
-	SELECT 'Update successful - changes committed'
-END
-ELSE
-BEGIN
-	ROLLBACK TRANSACTION
-	SELECT 'Update failed - changes rolled back'
-END
-
---select * from Person.EmailAddress;
-
--- SCALABLE SOLUTION 
-DECLARE @RowCNT INT = (
-	SELECT COUNT(*)
-	FROM Person.EmailAddress
-	WHERE BusinessEntityID = 1
-	)
-
-BEGIN TRANSACTION
-
-UPDATE Person.EmailAddress
-SET EmailAddress = 'Ken.Sánchez@adventure-works.com'
---WHERE BusinessEntityID = 1
-
-IF @@ROWCOUNT = @RowCNT
-COMMIT
-ELSE
-ROLLBACK
 
 /*
 Question 34:
@@ -197,28 +201,31 @@ Hint:
 Rank() Over (Order by ColumnName asc/desc) 
 */
 --a.
-SELECT
-	e.BusinessEntityID
-	, e.HireDate
-	, RANK() OVER(ORDER BY e.HireDate) as Seniority
-FROM HumanResources.Employee e
-;
-
+SELECT 
+  e.BusinessEntityID, 
+  e.HireDate, 
+  RANK() OVER(
+    ORDER BY 
+      e.HireDate
+  ) as Seniority 
+FROM 
+  HumanResources.Employee e;
 --b.
 -- DECLARE @CurrentDate date = '2014-03-03'
-
 -- to pull dinamically the current date:
 -- DECLARE @CurrentDate date = GETDATE()
-
-SELECT
-	e.BusinessEntityID
-	, e.HireDate
-	, RANK() OVER(ORDER BY e.HireDate) as Seniority
-	, DATEDIFF(day, e.HireDate, '2014-03-03') as DaysEmployed
-	, DATEDIFF(MONTH, e.HireDate, '2014-03-03') as MonthsEmployed
-	, DATEDIFF(YEAR, e.HireDate, '2014-03-03') as YearEmployed
-FROM HumanResources.Employee e
-;
+SELECT 
+  e.BusinessEntityID, 
+  e.HireDate, 
+  RANK() OVER(
+    ORDER BY 
+      e.HireDate
+  ) as Seniority, 
+  DATEDIFF(day, e.HireDate, '2014-03-03') as DaysEmployed, 
+  DATEDIFF(MONTH, e.HireDate, '2014-03-03') as MonthsEmployed, 
+  DATEDIFF(YEAR, e.HireDate, '2014-03-03') as YearEmployed 
+FROM 
+  HumanResources.Employee e;
 
 /*
 Question 35:
@@ -261,67 +268,63 @@ c.
 */
 --a.
 SELECT 
-    RANK() OVER (ORDER BY HireDate ASC) AS 'Seniority',
-    DATEDIFF(DAY, HireDate, '2014-03-03') AS 'DaysEmployed',
-    DATEDIFF(MONTH, HireDate, '2014-03-03') AS 'MonthsEmployed',
-    DATEDIFF(YEAR, HireDate, '2014-03-03') AS 'YearsEmployed',
-    *
-INTO #Temp1
-FROM HumanResources.Employee;
-
+  RANK() OVER (
+    ORDER BY 
+      HireDate ASC
+  ) AS 'Seniority', 
+  DATEDIFF(DAY, HireDate, '2014-03-03') AS 'DaysEmployed', 
+  DATEDIFF(MONTH, HireDate, '2014-03-03') AS 'MonthsEmployed', 
+  DATEDIFF(YEAR, HireDate, '2014-03-03') AS 'YearsEmployed', 
+  * INTO #Temp1
+FROM 
+  HumanResources.Employee;
 --b.
-Select * 
-From #Temp1
-Where BusinessEntityID in ('288','286')
-;
-
-UPDATE #Temp1
-SET YearsEmployed = 0
-WHERE BusinessEntityID in (286, 288)
-;
-
+Select 
+  * 
+From 
+  #Temp1
+Where 
+  BusinessEntityID in ('288', '286');
+UPDATE 
+  #Temp1
+SET 
+  YearsEmployed = 0 
+WHERE 
+  BusinessEntityID in (286, 288);
 --c.
-SELECT
-	COUNT(*)
-FROM #Temp1
-WHERE MonthsEmployed >= 66
-;
-
+SELECT 
+  COUNT(*) 
+FROM 
+  #Temp1
+WHERE 
+  MonthsEmployed >= 66;
 --d.
-SELECT
-	  CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year'
-		   WHEN YearsEmployed BETWEEN 1 AND 3 THEN 'Employed 1-3 Years'
-		   WHEN YearsEmployed BETWEEN 4 AND 6 THEN 'Employed 4-6'
-		   ELSE 'Employed Over 6 Years'
-	  END AS 'Category' 
-	, COUNT(*) as empCNT
-FROM #Temp1
+SELECT 
+  CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year' WHEN YearsEmployed BETWEEN 1 
+  AND 3 THEN 'Employed 1-3 Years' WHEN YearsEmployed BETWEEN 4 
+  AND 6 THEN 'Employed 4-6' ELSE 'Employed Over 6 Years' END AS 'Category', 
+  COUNT(*) as empCNT 
+FROM 
+  #Temp1
 GROUP BY 
-CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year'
-		   WHEN YearsEmployed BETWEEN 1 AND 3 THEN 'Employed 1-3 Years'
-		   WHEN YearsEmployed BETWEEN 4 AND 6 THEN 'Employed 4-6'
-		   ELSE 'Employed Over 6 Years'
-	  END 
-;
+  CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year' WHEN YearsEmployed BETWEEN 1 
+  AND 3 THEN 'Employed 1-3 Years' WHEN YearsEmployed BETWEEN 4 
+  AND 6 THEN 'Employed 4-6' ELSE 'Employed Over 6 Years' END;
 
 --e.
-SELECT
-	  CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year'
-		   WHEN YearsEmployed BETWEEN 1 AND 3 THEN 'Employed 1-3 Years'
-		   WHEN YearsEmployed BETWEEN 4 AND 6 THEN 'Employed 4-6'
-		   ELSE 'Employed Over 6 Years'
-	  END AS 'Category' 
-	, COUNT(*) as empCNT
-	, AVG(VacationHours) as VacationHrsAVG
-	, AVG(SickLeaveHours) as SickAVG
-FROM #Temp1
+SELECT 
+  CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year' WHEN YearsEmployed BETWEEN 1 
+  AND 3 THEN 'Employed 1-3 Years' WHEN YearsEmployed BETWEEN 4 
+  AND 6 THEN 'Employed 4-6' ELSE 'Employed Over 6 Years' END AS 'Category', 
+  COUNT(*) as empCNT, 
+  AVG(VacationHours) as VacationHrsAVG, 
+  AVG(SickLeaveHours) as SickAVG 
+FROM 
+  #Temp1
 GROUP BY 
-CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year'
-		   WHEN YearsEmployed BETWEEN 1 AND 3 THEN 'Employed 1-3 Years'
-		   WHEN YearsEmployed BETWEEN 4 AND 6 THEN 'Employed 4-6'
-		   ELSE 'Employed Over 6 Years'
-	  END 
-;
+  CASE WHEN YearsEmployed = 0 THEN 'Employed Less Than 1 Year' WHEN YearsEmployed BETWEEN 1 
+  AND 3 THEN 'Employed 1-3 Years' WHEN YearsEmployed BETWEEN 4 
+  AND 6 THEN 'Employed 4-6' ELSE 'Employed Over 6 Years' END;
 
 /*
 Question 36:
@@ -337,19 +340,29 @@ d. Using ROW_NUMBER and a partition rank each customer by region.
 Hint:
 ROW_NUMBER() Over(Partition by ColumnName Order by Value desc/asc)
 */
-SELECT
-	st.Name as RegionName
-	, FORMAT(SUM(TotalDue), 'C1') as SumTotalDue
-	, SUM(TotalDue) as Sort
-	, CONCAT(p.FirstName, ' ', p.LastName) AS FirstLastName
-	, ROW_NUMBER() OVER(PARTITION BY st.Name ORDER BY SUM(TotalDue) desc) as RankPerTerritory
-FROM Sales.SalesTerritory st
-JOIN Sales.SalesOrderHeader soh on st.TerritoryID = soh.TerritoryID
-JOIN Sales.Customer c on c.CustomerID = soh.CustomerID
-JOIN Person.Person p on c.PersonID = p.BusinessEntityID
-GROUP BY st.Name, CONCAT(p.FirstName, ' ', p.LastName)
-ORDER BY 5 asc
-;
+SELECT 
+  st.Name as RegionName, 
+  FORMAT(
+    SUM(TotalDue), 
+    'C1'
+  ) as SumTotalDue, 
+  SUM(TotalDue) as Sort, 
+  CONCAT(p.FirstName, ' ', p.LastName) AS FirstLastName, 
+  ROW_NUMBER() OVER(
+    PARTITION BY st.Name 
+    ORDER BY 
+      SUM(TotalDue) desc
+  ) as RankPerTerritory 
+FROM 
+  Sales.SalesTerritory st 
+  JOIN Sales.SalesOrderHeader soh on st.TerritoryID = soh.TerritoryID 
+  JOIN Sales.Customer c on c.CustomerID = soh.CustomerID 
+  JOIN Person.Person p on c.PersonID = p.BusinessEntityID 
+GROUP BY 
+  st.Name, 
+  CONCAT(p.FirstName, ' ', p.LastName) 
+ORDER BY 
+  5 asc;
 
 /*
 Question 37:
@@ -360,46 +373,73 @@ b. What is the average TotalDue per Region? Leave the top 25 filter
 */
 --a.
 WITH cte AS (
-    SELECT
-        st.Name as RegionName
-        , FORMAT(SUM(TotalDue), 'C1') as SumTotalDue
-        , SUM(TotalDue) as Sort
-        , CONCAT(p.FirstName, ' ', p.LastName) AS FirstLastName
-        , ROW_NUMBER() OVER(PARTITION BY st.Name ORDER BY SUM(TotalDue) desc) as RankPerTerritory
-    FROM Sales.SalesTerritory st
-    JOIN Sales.SalesOrderHeader soh on st.TerritoryID = soh.TerritoryID
-    JOIN Sales.Customer c on c.CustomerID = soh.CustomerID
-    JOIN Person.Person p on c.PersonID = p.BusinessEntityID
-    GROUP BY st.Name, CONCAT(p.FirstName, ' ', p.LastName)
-)
-SELECT *
-FROM cte
-WHERE RankPerTerritory <= 25
-ORDER BY RegionName, Sort DESC
-;
-
+  SELECT 
+    st.Name as RegionName, 
+    FORMAT(
+      SUM(TotalDue), 
+      'C1'
+    ) as SumTotalDue, 
+    SUM(TotalDue) as Sort, 
+    CONCAT(p.FirstName, ' ', p.LastName) AS FirstLastName, 
+    ROW_NUMBER() OVER(
+      PARTITION BY st.Name 
+      ORDER BY 
+        SUM(TotalDue) desc
+    ) as RankPerTerritory 
+  FROM 
+    Sales.SalesTerritory st 
+    JOIN Sales.SalesOrderHeader soh on st.TerritoryID = soh.TerritoryID 
+    JOIN Sales.Customer c on c.CustomerID = soh.CustomerID 
+    JOIN Person.Person p on c.PersonID = p.BusinessEntityID 
+  GROUP BY 
+    st.Name, 
+    CONCAT(p.FirstName, ' ', p.LastName)
+) 
+SELECT 
+  * 
+FROM 
+  cte 
+WHERE 
+  RankPerTerritory <= 25 
+ORDER BY 
+  RegionName, 
+  Sort DESC;
 --b.
 WITH CTE AS (
-    SELECT
-        st.Name as RegionName
-        , FORMAT(SUM(TotalDue), 'C1') as SumTotalDue
-        , SUM(TotalDue) as Sort
-        , CONCAT(p.FirstName, ' ', p.LastName) AS FirstLastName
-        , ROW_NUMBER() OVER(PARTITION BY st.Name ORDER BY SUM(TotalDue) DESC) as RankPerTerritory
-    FROM Sales.SalesTerritory st
-    JOIN Sales.SalesOrderHeader soh on st.TerritoryID = soh.TerritoryID
-    JOIN Sales.Customer c on c.CustomerID = soh.CustomerID
-    JOIN Person.Person p on c.PersonID = p.BusinessEntityID
-    GROUP BY st.Name, CONCAT(p.FirstName, ' ', p.LastName)
-)
+  SELECT 
+    st.Name as RegionName, 
+    FORMAT(
+      SUM(TotalDue), 
+      'C1'
+    ) as SumTotalDue, 
+    SUM(TotalDue) as Sort, 
+    CONCAT(p.FirstName, ' ', p.LastName) AS FirstLastName, 
+    ROW_NUMBER() OVER(
+      PARTITION BY st.Name 
+      ORDER BY 
+        SUM(TotalDue) DESC
+    ) as RankPerTerritory 
+  FROM 
+    Sales.SalesTerritory st 
+    JOIN Sales.SalesOrderHeader soh on st.TerritoryID = soh.TerritoryID 
+    JOIN Sales.Customer c on c.CustomerID = soh.CustomerID 
+    JOIN Person.Person p on c.PersonID = p.BusinessEntityID 
+  GROUP BY 
+    st.Name, 
+    CONCAT(p.FirstName, ' ', p.LastName)
+) 
 SELECT 
-    RegionName, 
-    AVG(Sort) AS AverageTotalDue 
-FROM CTE
-WHERE RankPerTerritory <= 25
-GROUP BY RegionName
-ORDER BY RegionName ASC
-;
+  RegionName, 
+  AVG(Sort) AS AverageTotalDue 
+FROM 
+  CTE 
+WHERE 
+  RankPerTerritory <= 25 
+GROUP BY 
+  RegionName 
+ORDER BY 
+  RegionName ASC;
+
 
 /*
 Question 38:
@@ -416,42 +456,63 @@ Hint:
 d. Use the Over clause and an Inner Query (subquery)
 */
 --a.
-SELECT
-	FORMAT(SUM(soh.Freight), 'C0') as totalFreight
-FROM Sales.SalesOrderHeader soh
-;
-
+SELECT 
+  FORMAT(
+    SUM(soh.Freight), 
+    'C0'
+  ) as totalFreight 
+FROM 
+  Sales.SalesOrderHeader soh;
 --b.
-SELECT
-	FORMAT(SUM(soh.Freight), 'C0') as totalFreight
-	, DATEPART(year, soh.ShipDate) as yearShipDate
-FROM Sales.SalesOrderHeader soh
-GROUP BY DATEPART(year, soh.ShipDate)
-ORDER BY 2 DESC
-;
-
+SELECT 
+  FORMAT(
+    SUM(soh.Freight), 
+    'C0'
+  ) as totalFreight, 
+  DATEPART(year, soh.ShipDate) as yearShipDate 
+FROM 
+  Sales.SalesOrderHeader soh 
+GROUP BY 
+  DATEPART(year, soh.ShipDate) 
+ORDER BY 
+  2 DESC;
 --c.
-SELECT
-	DATEPART(year, soh.ShipDate) as yearShipDate
-	, FORMAT(SUM(soh.Freight), 'C0') as totalFreight
-	, FORMAT(AVG(soh.Freight), 'C0') as avgFreightPerOrder
-FROM Sales.SalesOrderHeader soh
-GROUP BY DATEPART(year, soh.ShipDate)
-;
-
+SELECT 
+  DATEPART(year, soh.ShipDate) as yearShipDate, 
+  FORMAT(
+    SUM(soh.Freight), 
+    'C0'
+  ) as totalFreight, 
+  FORMAT(
+    AVG(soh.Freight), 
+    'C0'
+  ) as avgFreightPerOrder 
+FROM 
+  Sales.SalesOrderHeader soh 
+GROUP BY 
+  DATEPART(year, soh.ShipDate);
 --d.
 SELECT 
-	*
-	, FORMAT(SUM(totalFreight) OVER(ORDER BY yearShipDate), 'C0') as runningTotal
-FROM (
-	SELECT
-		DATEPART(year, soh.ShipDate) as yearShipDate
-		, SUM(soh.Freight) as totalFreight
-		, AVG(soh.Freight) as avgFreightPerOrder
-	FROM Sales.SalesOrderHeader soh
-	GROUP BY DATEPART(year, soh.ShipDate)
-) A
-;
+  *, 
+  FORMAT(
+    SUM(totalFreight) OVER(
+      ORDER BY 
+        yearShipDate
+    ), 
+    'C0'
+  ) as runningTotal 
+FROM 
+  (
+    SELECT 
+      DATEPART(year, soh.ShipDate) as yearShipDate, 
+      SUM(soh.Freight) as totalFreight, 
+      AVG(soh.Freight) as avgFreightPerOrder 
+    FROM 
+      Sales.SalesOrderHeader soh 
+    GROUP BY 
+      DATEPART(year, soh.ShipDate)
+  ) A;
+
 
 /*
 Question 39:
@@ -465,34 +526,56 @@ a. You will need to edit the Inner Query
 */
 
 SELECT 
-	*
-	, FORMAT(SUM(totalFreight) OVER(ORDER BY yearShipDate), 'C0') as runningTotal
-FROM (
-	SELECT
-		YEAR(soh.ShipDate) as yearShipDate
-		, SUM(soh.Freight) as totalFreight
-		, AVG(soh.Freight) as avgFreightPerOrder
-		, COUNT(DISTINCT MONTH(soh.ShipDate)) as CompleteMonths
-	FROM Sales.SalesOrderHeader soh
-	GROUP BY YEAR(soh.ShipDate)
-) A
-;
-
+  *, 
+  FORMAT(
+    SUM(totalFreight) OVER(
+      ORDER BY 
+        yearShipDate
+    ), 
+    'C0'
+  ) as runningTotal 
+FROM 
+  (
+    SELECT 
+      YEAR(soh.ShipDate) as yearShipDate, 
+      SUM(soh.Freight) as totalFreight, 
+      AVG(soh.Freight) as avgFreightPerOrder, 
+      COUNT(
+        DISTINCT MONTH(soh.ShipDate)
+      ) as CompleteMonths 
+    FROM 
+      Sales.SalesOrderHeader soh 
+    GROUP BY 
+      YEAR(soh.ShipDate)
+  ) A;
 --b.
 SELECT 
-	*
-	, FORMAT(SUM(totalFreight) OVER(ORDER BY yearShipDate), 'C0') as runningTotal
-	, FORMAT(totalFreight/CompleteMonths, 'C0') as avgFreightPerMonth
-FROM (
-	SELECT
-		YEAR(soh.ShipDate) as yearShipDate
-		, SUM(soh.Freight) as totalFreight
-		, AVG(soh.Freight) as avgFreightPerOrder
-		, COUNT(DISTINCT MONTH(soh.ShipDate)) as CompleteMonths
-	FROM Sales.SalesOrderHeader soh
-	GROUP BY YEAR(soh.ShipDate)
-) A
-;
+  *, 
+  FORMAT(
+    SUM(totalFreight) OVER(
+      ORDER BY 
+        yearShipDate
+    ), 
+    'C0'
+  ) as runningTotal, 
+  FORMAT(
+    totalFreight / CompleteMonths, 'C0'
+  ) as avgFreightPerMonth 
+FROM 
+  (
+    SELECT 
+      YEAR(soh.ShipDate) as yearShipDate, 
+      SUM(soh.Freight) as totalFreight, 
+      AVG(soh.Freight) as avgFreightPerOrder, 
+      COUNT(
+        DISTINCT MONTH(soh.ShipDate)
+      ) as CompleteMonths 
+    FROM 
+      Sales.SalesOrderHeader soh 
+    GROUP BY 
+      YEAR(soh.ShipDate)
+  ) A;
+
 
 /*
 Question 40:
@@ -515,48 +598,73 @@ c. Use the Over clause and an Inner Query (subquery)
 d. Add a partition to the Over Clause
 */
 --a, b, c
-SELECT
-	*
-	, FORMAT(SUM(totalFreight) OVER (ORDER BY yearShipDate, monthShipDate), 'C0') as cumSum
-FROM
-(
-	SELECT
-		DATEPART(YEAR, soh.ShipDate) as yearShipDate
-		, DATEPART(month, soh.ShipDate) as monthShipDate
-		, DATENAME(MONTH, soh.ShipDate) as monthShipDateName
-		, SUM(soh.Freight) as totalFreight
-		, AVG(soh.Freight) as avgFreight
-	FROM Sales.SalesOrderHeader soh
-	WHERE soh.ShipDate >= '2011-06-01'
-	GROUP BY 
-		DATEPART(YEAR, soh.ShipDate)
-		, DATEPART(month, soh.ShipDate)
-		, DATENAME(MONTH, soh.ShipDate)
-) A
+SELECT 
+  *, 
+  FORMAT(
+    SUM(totalFreight) OVER (
+      ORDER BY 
+        yearShipDate, 
+        monthShipDate
+    ), 
+    'C0'
+  ) as cumSum 
+FROM 
+  (
+    SELECT 
+      DATEPART(YEAR, soh.ShipDate) as yearShipDate, 
+      DATEPART(month, soh.ShipDate) as monthShipDate, 
+      DATENAME(MONTH, soh.ShipDate) as monthShipDateName, 
+      SUM(soh.Freight) as totalFreight, 
+      AVG(soh.Freight) as avgFreight 
+    FROM 
+      Sales.SalesOrderHeader soh 
+    WHERE 
+      soh.ShipDate >= '2011-06-01' 
+    GROUP BY 
+      DATEPART(YEAR, soh.ShipDate), 
+      DATEPART(month, soh.ShipDate), 
+      DATENAME(MONTH, soh.ShipDate)
+  ) A 
 ORDER BY 
-	yearShipDate, monthShipDate
-;
-
+  yearShipDate, 
+  monthShipDate;
 --d
-SELECT
-	*
-	, FORMAT(SUM(totalFreight) OVER (ORDER BY yearShipDate, monthShipDate), 'C0') as cumSum
-	, FORMAT(SUM(totalFreight) OVER (PARTITION BY yearShipDate ORDER BY yearShipDate, monthShipDate), 'C0') as ytdRunningTotal
-FROM
-(
-	SELECT
-		DATEPART(YEAR, soh.ShipDate) as yearShipDate
-		, DATEPART(month, soh.ShipDate) as monthShipDate
-		, DATENAME(MONTH, soh.ShipDate) as monthShipDateName
-		, SUM(soh.Freight) as totalFreight
-		, AVG(soh.Freight) as avgFreight
-	FROM Sales.SalesOrderHeader soh
-	WHERE soh.ShipDate >= '2011-06-01'
-	GROUP BY 
-		DATEPART(YEAR, soh.ShipDate)
-		, DATEPART(month, soh.ShipDate)
-		, DATENAME(MONTH, soh.ShipDate)
-) A
+SELECT 
+  *, 
+  FORMAT(
+    SUM(totalFreight) OVER (
+      ORDER BY 
+        yearShipDate, 
+        monthShipDate
+    ), 
+    'C0'
+  ) as cumSum, 
+  FORMAT(
+    SUM(totalFreight) OVER (
+      PARTITION BY yearShipDate 
+      ORDER BY 
+        yearShipDate, 
+        monthShipDate
+    ), 
+    'C0'
+  ) as ytdRunningTotal 
+FROM 
+  (
+    SELECT 
+      DATEPART(YEAR, soh.ShipDate) as yearShipDate, 
+      DATEPART(month, soh.ShipDate) as monthShipDate, 
+      DATENAME(MONTH, soh.ShipDate) as monthShipDateName, 
+      SUM(soh.Freight) as totalFreight, 
+      AVG(soh.Freight) as avgFreight 
+    FROM 
+      Sales.SalesOrderHeader soh 
+    WHERE 
+      soh.ShipDate >= '2011-06-01' 
+    GROUP BY 
+      DATEPART(YEAR, soh.ShipDate), 
+      DATEPART(month, soh.ShipDate), 
+      DATENAME(MONTH, soh.ShipDate)
+  ) A 
 ORDER BY 
-	yearShipDate, monthShipDate
-;
+  yearShipDate, 
+  monthShipDate;
